@@ -6,16 +6,16 @@ WORKDIR /app
 # Copiar el código
 COPY . .
 
-# Compilar (sin correr tests)
+# Compilar el proyecto (sin ejecutar tests)
 RUN mvn clean package -DskipTests
 
-# Etapa 2: Ejecutar la app
+# Etapa 2: Ejecutar la aplicación
 FROM openjdk:21-jdk
 
 WORKDIR /app
 
-# Copiar el jar compilado de la etapa anterior
+# Copiar el JAR desde la etapa de build
 COPY --from=build /app/target/app-0.0.1-SNAPSHOT.jar app.jar
 
-# Comando para correr
+# Ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
