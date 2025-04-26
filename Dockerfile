@@ -5,7 +5,7 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # Copia el JAR al contenedor
-COPY target/app-0.0.1-SNAPSHOT.jar app.jar
+COPY target/app-0.0.1-SNAPSHOT.jar.original app.jar
 
 # Comando para correr tu app
 CMD ["java", "-jar", "app.jar"]
