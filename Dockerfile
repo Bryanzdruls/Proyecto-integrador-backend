@@ -15,7 +15,7 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # Copiar el jar compilado de la etapa anterior
-COPY --from=build /app/target/app-0.0.1-SNAPSHOT.jar.original app.jar
+COPY --from=build /app/target/app-0.0.1-SNAPSHOT.jar app.jar
 
 # Comando para correr
 CMD ["java", "-jar", "app.jar"]
