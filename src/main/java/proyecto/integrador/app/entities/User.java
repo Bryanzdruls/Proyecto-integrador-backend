@@ -1,5 +1,6 @@
 package proyecto.integrador.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -40,6 +41,7 @@ public class User implements UserDetails {
     private Integer score;
 
     @OneToMany(mappedBy = "user")  // Esto indica que es la relación inversa y se mapeará por la propiedad "user" de la clase Incentive
+    @JsonIgnore
     private List<Incentive> incentives;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
