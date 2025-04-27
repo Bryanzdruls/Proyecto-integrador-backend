@@ -1,5 +1,6 @@
 package proyecto.integrador.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,12 @@ public class Reports {
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "id_event", nullable = false)
+    @JsonIgnore
+    private Event event;
+
 
     private String title;
     private String description;

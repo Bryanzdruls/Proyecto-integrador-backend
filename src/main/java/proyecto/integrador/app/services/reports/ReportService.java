@@ -2,18 +2,17 @@ package proyecto.integrador.app.services.reports;
 
 import proyecto.integrador.app.dto.request.ReportRequestDTO;
 import proyecto.integrador.app.dto.response.ReportResponseDTO;
-import proyecto.integrador.app.entities.Reports;
-import proyecto.integrador.app.entities.User;
+import proyecto.integrador.app.entities.*;
+import proyecto.integrador.app.exceptions.UserNotFoundException;
+import proyecto.integrador.app.exceptions.reports.EventNotFoundException;
+import proyecto.integrador.app.exceptions.reports.ReportNotFoundException;
+import proyecto.integrador.app.repository.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import proyecto.integrador.app.exceptions.UserNotFoundException;
-import proyecto.integrador.app.exceptions.reports.ReportNotFoundException;
-import proyecto.integrador.app.repository.ReportRepository;
-import proyecto.integrador.app.repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,21 +20,28 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
+    private final EventRepository eventRepository; // 👈 Agregado
+    private final IncentiveTypeRepository incentiveTypeRepository;
+    private final IncentiveRepository incentiveRepository;
 
     @Autowired
-    public ReportService(ReportRepository reportRepository, UserRepository userRepository) {
+    public ReportService(ReportRepository reportRepository, UserRepository userRepository, EventRepository eventRepository, IncentiveTypeRepository incentiveTypeRepository,IncentiveRepository incentiveRepository) {
         this.userRepository = userRepository;
         this.reportRepository = reportRepository;
+        this.eventRepository = eventRepository; // 👈 Asignado
+        this.incentiveTypeRepository = incentiveTypeRepository;
+        this.incentiveRepository =incentiveRepository;
     }
 
     // Create a new report
     @Transactional
     public ReportResponseDTO createReport(ReportRequestDTO reportRequestDTO) {
-        // Validar si el usuario existe
         User user = userRepository.findById(reportRequestDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        // Crear y guardar el reporte
+        Event event = eventRepository.findById(1L)
+                .orElseThrow(() -> new EventNotFoundException("Active event not found"));
+
         Reports report = new Reports();
         report.setUser(user);
         report.setTitle(reportRequestDTO.getTitle());
@@ -45,12 +51,31 @@ public class ReportService {
         report.setCompanyContactNumber(reportRequestDTO.getCompanyContactNumber());
         report.setUrgency(reportRequestDTO.getUrgency());
         report.setAttachment(reportRequestDTO.getAttachment());
+        report.setEvent(event); // 👈 Asociamos el evento al reporte
 
         Reports savedReport = reportRepository.save(report);
+        if (event.isActive()) {
+            // Obtener el tipo de incentivo (por ejemplo, por nombre o id)
+            IncentiveType incentiveType = incentiveTypeRepository.findByName("POINTS");  // Ejemplo de tipo de incentivo
+
+            Incentive incentive = new Incentive();
+            incentive.setReport(savedReport);
+            incentive.setIncentiveType(incentiveType);  // Asociar el tipo de incentivo
+            incentive.setUser(user);  // Asociar el usuario que generó el reporte
+            incentive.setPointsAmount(10);
+
+            if (user.getScore() == null) {
+                user.setScore(0);
+            }
+            user.setScore(user.getScore()+10);
+            incentive.setStatus("ACTIVE");
+            userRepository.save(user);
+            incentive.setStatus("DONE");
+            incentiveRepository.save(incentive);
+        }
 
         return mapToResponseDTO(savedReport);
     }
-
 
     // Get all reports
     public List<ReportResponseDTO> getAllReports() {
@@ -67,8 +92,6 @@ public class ReportService {
         return mapToResponseDTO(report);
     }
 
-
-
     // Update a report
     @Transactional
     public ReportResponseDTO updateReport(Long id, ReportRequestDTO reportRequestDTO) {
@@ -76,7 +99,7 @@ public class ReportService {
                 .orElseThrow(() -> new ReportNotFoundException("Report not found with id: " + id));
 
         existingReport.setUser(userRepository.findById(reportRequestDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found"))); // o usa tu UserNotFoundException si quieres
+                .orElseThrow(() -> new UserNotFoundException("User not found")));
         existingReport.setTitle(reportRequestDTO.getTitle());
         existingReport.setDescription(reportRequestDTO.getDescription());
         existingReport.setDate(reportRequestDTO.getDate());
@@ -89,8 +112,6 @@ public class ReportService {
         return mapToResponseDTO(updatedReport);
     }
 
-
-
     // Delete a report
     @Transactional
     public ReportResponseDTO deleteReport(Long id) {
@@ -101,12 +122,11 @@ public class ReportService {
         return mapToResponseDTO(existingReport);
     }
 
-
     // Helper method to map from Report entity to ReportResponseDTO
     private ReportResponseDTO mapToResponseDTO(Reports report) {
         return ReportResponseDTO.builder()
                 .idReport(report.getIdReport())
-                .userId(Long.valueOf(report.getUser().getIdUser()))  // Assuming User entity has getId()
+                .userId(Long.valueOf(report.getUser().getIdUser()))
                 .title(report.getTitle())
                 .description(report.getDescription())
                 .date(report.getDate())

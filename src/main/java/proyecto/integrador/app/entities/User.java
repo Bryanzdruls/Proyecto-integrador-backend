@@ -36,6 +36,11 @@ public class User implements UserDetails {
     @Column(name = "role")
     @Enumerated(value = EnumType.STRING)
     private Role role;
+    @Column(name = "score")
+    private Integer score;
+
+    @OneToMany(mappedBy = "user")  // Esto indica que es la relación inversa y se mapeará por la propiedad "user" de la clase Incentive
+    private List<Incentive> incentives;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority((role.name())));
