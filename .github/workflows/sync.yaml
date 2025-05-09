@@ -31,7 +31,7 @@ jobs:
       - name: Set up Java version
         uses: actions/setup-java@v2
         with:
-          java-version: '11'          # Change to your desired Java version
+          java-version: '21'          # Change to your desired Java version
           distribution: 'zulu'
 
       - name: Build with Maven
