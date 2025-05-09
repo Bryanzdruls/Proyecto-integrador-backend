@@ -51,9 +51,11 @@ jobs:
       
 
       # Desplegar a Elastic Beanstalk
-      - name: Deploy to Elastic Beanstalk
+      - name: Deploy to Elastic Beanstalk using Environment ID
         run: |
+          ENVIRONMENT_ID="e-vfiurniwbr"  # Reemplaza esto con el ID del entorno
           aws elasticbeanstalk update-environment \
-            --environment-name Proyecto-integrador-backend-env \
+            --environment-id $ENVIRONMENT_ID \
             --version-label v1
+      
       
