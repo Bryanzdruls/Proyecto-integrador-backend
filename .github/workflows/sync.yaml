@@ -47,23 +47,24 @@ jobs:
 
 
       - name: Run Docker container
-        run: >
-          docker run -d -p 32426:32426
-          --name proteccion-aws-container
-          -e SPRING_APPLICATION_NAME=app
-          -e SERVER_SERVLET_CONTEXT_PATH=/api/1.0
-          -e SPRING_DATASOURCE_URL=jdbc:postgresql://ep-royal-breeze-a50uqihl-pooler.us-east-2.aws.neon.tech/neondb?user=neondb_owner&password=npg_nXh0GYF4JsMB&sslmode=require
-          -e SPRING_DATASOURCE_USERNAME=neondb_owner
-          -e SPRING_DATASOURCE_PASSWORD=npg_nXh0GYF4JsMB
-          -e SPRING_JPA_HIBERNATE_DDL_AUTO=update
-          -e SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
-          -e SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true
-          -e SPRING_SQL_INIT_MODE=always
-          -e SPRING_JPA_PROPERTIES_HIBERNATE_TRANSACTION_JTA_PLATFORM=true
-          -e APPLICATION_SECURITY_JWT_SECRET_KEY=mi_super_secreto_largooo_de_32_caracteres_minimo
-          -e APPLICATION_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION=86400000
-          -e APPLICATION_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION=604800000
-          -e SERVER_PORT=32426
-          -e SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB
-          -e SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB
-          soybrian/proteccion-aws-ec2:latest
+        run: |
+          docker run -d -p 32426:32426 \
+            --name proteccion-aws-container \
+            -e SPRING_APPLICATION_NAME=app \
+            -e SERVER_SERVLET_CONTEXT_PATH=/api/1.0 \
+            -e SPRING_DATASOURCE_URL="jdbc:postgresql://ep-royal-breeze-a50uqihl-pooler.us-east-2.aws.neon.tech/neondb?user=neondb_owner&password=npg_nXh0GYF4JsMB&sslmode=require" \
+            -e SPRING_DATASOURCE_USERNAME=neondb_owner \
+            -e SPRING_DATASOURCE_PASSWORD=npg_nXh0GYF4JsMB \
+            -e SPRING_JPA_HIBERNATE_DDL_AUTO=update \
+            -e SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true \
+            -e SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION=true \
+            -e SPRING_SQL_INIT_MODE=always \
+            -e SPRING_JPA_PROPERTIES_HIBERNATE_TRANSACTION_JTA_PLATFORM=true \
+            -e APPLICATION_SECURITY_JWT_SECRET_KEY=mi_super_secreto_largooo_de_32_caracteres_minimo \
+            -e APPLICATION_SECURITY_JWT_ACCESS_TOKEN_EXPIRATION=86400000 \
+            -e APPLICATION_SECURITY_JWT_REFRESH_TOKEN_EXPIRATION=604800000 \
+            -e SERVER_PORT=32426 \
+            -e SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB \
+            -e SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB \
+            soybrian/proteccion-aws-ec2:latest
+      
