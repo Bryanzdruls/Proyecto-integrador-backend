@@ -59,4 +59,4 @@ jobs:
             -e SERVER_PORT=32426 \
             -e SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB \
             -e SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB \
-            juanpablo24/proteccion-aws-ec2:latest
+            soybrian/proteccion-aws-ec2:latest
