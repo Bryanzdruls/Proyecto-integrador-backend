@@ -12,14 +12,26 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReportResponseDTO {
-
-    private Long idReport; // ID of the report
-    private Long userId;   // User ID associated with the report
+    private Long idReport;
+    private String userEmail; // <- aquí ahora va el email
     private String title;
-    private String description; // 'desc' renamed to 'description'
+    private String description;
     private LocalDate date;
     private String type;
     private String companyContactNumber;
     private String urgency;
+    //private byte[] attachment;
     private String attachment;
+
+    public ReportResponseDTO(Long idReport, String userEmail, String title, String description, LocalDate date, String type, String companyContactNumber, String urgency) {
+        this.idReport = idReport;
+        this.userEmail = userEmail;
+        this.title = title;
+        this.description = description;
+        this.date = date;
+        this.type = type;
+        this.companyContactNumber = companyContactNumber;
+        this.urgency = urgency;
+    }
 }
+

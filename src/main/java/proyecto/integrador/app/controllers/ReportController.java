@@ -1,5 +1,7 @@
 package proyecto.integrador.app.controllers;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import proyecto.integrador.app.dto.request.ReportRequestDTO;
 import proyecto.integrador.app.dto.response.ReportResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +27,24 @@ public class ReportController {
     }
 
     // Create a new report
-    @PostMapping
-    public ResponseEntity<SuccessResponse<ReportResponseDTO>> createReport(@RequestBody ReportRequestDTO reportRequestDTO) {
-        ReportResponseDTO createdReport = reportService.createReport(reportRequestDTO);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SuccessResponse<ReportResponseDTO>> createReport(
+            @RequestPart("report") ReportRequestDTO reportRequestDTO,
+            @RequestPart(value = "attachment", required = false) MultipartFile attachmentFile
+    ) {
+        ReportResponseDTO createdReport = reportService.createReport(reportRequestDTO, attachmentFile);
         SuccessResponse<ReportResponseDTO> response = new SuccessResponse<>(true, createdReport);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
 
+
     // Get all reports
     @GetMapping
-    public ResponseEntity<List<ReportResponseDTO>> getAllReports() {
+    public ResponseEntity<SuccessResponse<List<ReportResponseDTO>>> getAllReports() {
         List<ReportResponseDTO> reports = reportService.getAllReports();
-        return new ResponseEntity<>(reports, HttpStatus.OK);
+        SuccessResponse<List<ReportResponseDTO>> response = new SuccessResponse<>(true, reports);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     // Get a report by its ID
@@ -51,8 +58,8 @@ public class ReportController {
 
     // Update a report
     @PutMapping("/{id}")
-    public ResponseEntity<SuccessResponse<ReportResponseDTO>> updateReport(@PathVariable("id") Long id, @RequestBody ReportRequestDTO reportRequestDTO) {
-        ReportResponseDTO updatedReport = reportService.updateReport(id, reportRequestDTO);
+    public ResponseEntity<SuccessResponse<ReportResponseDTO>> updateReport(@PathVariable("id") Long id, @RequestBody ReportRequestDTO reportRequestDTO,@RequestPart(value = "attachment", required = false) MultipartFile attachmentFile) {
+        ReportResponseDTO updatedReport = reportService.updateReport(id, reportRequestDTO, attachmentFile);
         SuccessResponse<ReportResponseDTO> response = new SuccessResponse<>(true, updatedReport);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

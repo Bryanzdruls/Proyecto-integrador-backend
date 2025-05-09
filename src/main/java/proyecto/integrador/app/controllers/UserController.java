@@ -1,8 +1,11 @@
 package proyecto.integrador.app.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import proyecto.integrador.app.dto.response.ReportResponseDTO;
+import proyecto.integrador.app.dto.response.SuccessResponse;
 import proyecto.integrador.app.entities.User;
 import proyecto.integrador.app.services.user.UserService;
 
@@ -21,18 +24,26 @@ public class UserController {
 
     // Obtener todos los usuarios
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<SuccessResponse<List<User>>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        SuccessResponse<List<User>> response = new SuccessResponse<>(true, users);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // Obtener un usuario por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+    @GetMapping("/id/{id}")
+    public ResponseEntity<SuccessResponse<User>> getUserById(@PathVariable Integer id) {
         User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        SuccessResponse<User> response = new SuccessResponse<>(true, user);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<SuccessResponse<User>> getUserByEmail(@PathVariable String email) {
+        User user = userService.getUserByEmail(email);
+        SuccessResponse<User> response = new SuccessResponse<>(true, user);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
     // Crear un nuevo usuario
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
@@ -42,9 +53,10 @@ public class UserController {
 
     // Actualizar un usuario existente
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user) {
+    public ResponseEntity<SuccessResponse<User>> updateUser(@PathVariable Integer id, @RequestBody User user) {
         User updatedUser = userService.updateUser(id, user);
-        return ResponseEntity.ok(updatedUser);
+        SuccessResponse<User> response = new SuccessResponse<>(true, updatedUser);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // Eliminar un usuario

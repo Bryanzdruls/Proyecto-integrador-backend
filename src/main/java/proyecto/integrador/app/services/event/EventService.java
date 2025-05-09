@@ -8,6 +8,8 @@ import proyecto.integrador.app.exceptions.UserNotFoundException;
 import proyecto.integrador.app.exceptions.reports.EventNotFoundException;
 import proyecto.integrador.app.repository.EventRepository;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -18,6 +20,13 @@ public class EventService {
 
     public Event save(Event event) {
         return eventRepository.save(event);
+    }
+    public List<Event> getAllEvents() {
+        List<Event> events = eventRepository.findAll();
+        if (events.isEmpty()) {
+            throw new NoSuchElementException("No hay eventos registrados en la base de datos");
+        }
+        return events;
     }
 
     public Event getEventById(Long id) {

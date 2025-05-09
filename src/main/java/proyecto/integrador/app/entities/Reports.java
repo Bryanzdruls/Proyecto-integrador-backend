@@ -1,5 +1,6 @@
 package proyecto.integrador.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,7 +29,7 @@ public class Reports {
 
     @ManyToOne
     @JoinColumn(name = "id_event", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     private Event event;
 
 
@@ -38,5 +39,8 @@ public class Reports {
     private String type;
     private String companyContactNumber;
     private String urgency;
-    private String attachment;
+    @Lob
+    @Column(name = "attachment", columnDefinition = "BLOB")
+    @JsonIgnore
+    private byte[] attachment;
 }

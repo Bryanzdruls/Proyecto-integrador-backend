@@ -1,5 +1,7 @@
 package proyecto.integrador.app.controllers;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -7,6 +9,7 @@ import proyecto.integrador.app.config.jwt.JwtServiceImpl;
 import proyecto.integrador.app.dto.request.AuthRequestDTO;
 import proyecto.integrador.app.dto.response.AuthResponseDTO;
 import proyecto.integrador.app.dto.request.RegisterRequestDTO;
+import proyecto.integrador.app.dto.response.SuccessResponse;
 import proyecto.integrador.app.dto.response.UserResponseDTO;
 import proyecto.integrador.app.entities.RefreshToken;
 import proyecto.integrador.app.exceptions.BadUserCredentialsException;
@@ -45,8 +48,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public UserResponseDTO addNewUser(@RequestBody RegisterRequestDTO registerRequestDTO){
-        return authenticationService.saveUser(registerRequestDTO);
+    public ResponseEntity<SuccessResponse<UserResponseDTO>> addNewUser(@RequestBody RegisterRequestDTO registerRequestDTO){
+        SuccessResponse<UserResponseDTO> response = new SuccessResponse<>(true,authenticationService.saveUser(registerRequestDTO));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/login")

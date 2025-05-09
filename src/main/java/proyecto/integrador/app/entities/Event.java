@@ -1,5 +1,7 @@
 package proyecto.integrador.app.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +24,10 @@ public class Event {
     private LocalDate endDate;
 
     @OneToMany(mappedBy = "event")
+    @JsonIgnore
     private List<Reports> reports;
+
+
 
     public boolean isActive() {
         LocalDate today = LocalDate.now();

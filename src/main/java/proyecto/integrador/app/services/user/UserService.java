@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import proyecto.integrador.app.entities.User;
 import proyecto.integrador.app.exceptions.UserNotFoundException;
+import proyecto.integrador.app.exceptions.users.EmailAlreadyExistsException;
 import proyecto.integrador.app.repository.UserRepository;
 
 import java.util.List;
@@ -29,18 +30,33 @@ public class UserService {
         return userRepository.findById(id.longValue()).orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("Usuario con el email: "+email+ " no fue encontrado."));
+    }
+
     // Crear un nuevo usuario
     public User createUser(User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException("Ya existe un usuario asociado a este email.");
+        }
         return userRepository.save(user);
     }
 
     // Actualizar un usuario
     public User updateUser(Integer id, User user) {
-        if (!userRepository.existsById(id.longValue())) {
-            throw new UserNotFoundException("User not found");
+        User existingUser = userRepository.findById(id.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Optional<User> userWithSameEmail = userRepository.findByEmail(user.getEmail());
+        if (userWithSameEmail.isPresent() && !userWithSameEmail.get().getIdUser().equals(id)) {
+            throw new EmailAlreadyExistsException("Ya existe un usuario asociado a este email.");
         }
-        user.setIdUser(id);
-        return userRepository.save(user);
+        existingUser.setIdUser(id);
+        existingUser.setEmail(user.getEmail());
+        existingUser.setName(user.getName());
+        existingUser.setScore(user.getScore());
+        existingUser.setRole(user.getRole());
+        return userRepository.save(existingUser);
     }
 
     // Eliminar un usuario

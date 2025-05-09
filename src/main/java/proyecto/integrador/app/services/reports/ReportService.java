@@ -1,10 +1,13 @@
 package proyecto.integrador.app.services.reports;
 
+import org.springframework.web.multipart.MultipartFile;
 import proyecto.integrador.app.dto.request.ReportRequestDTO;
 import proyecto.integrador.app.dto.response.ReportResponseDTO;
 import proyecto.integrador.app.entities.*;
 import proyecto.integrador.app.exceptions.UserNotFoundException;
+import proyecto.integrador.app.exceptions.reports.DateException;
 import proyecto.integrador.app.exceptions.reports.EventNotFoundException;
+import proyecto.integrador.app.exceptions.reports.FileException;
 import proyecto.integrador.app.exceptions.reports.ReportNotFoundException;
 import proyecto.integrador.app.repository.*;
 
@@ -12,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,12 +41,28 @@ public class ReportService {
 
     // Create a new report
     @Transactional
-    public ReportResponseDTO createReport(ReportRequestDTO reportRequestDTO) {
+    public ReportResponseDTO createReport(ReportRequestDTO reportRequestDTO, MultipartFile attachmentFile) {
         User user = userRepository.findById(reportRequestDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("El usuario con el id "+reportRequestDTO.getUserId()+" no fue encontrado."));
 
         Event event = eventRepository.findById(1L)
                 .orElseThrow(() -> new EventNotFoundException("Active event not found"));
+
+        LocalDate today = LocalDate.now();
+        LocalDate reportDate = reportRequestDTO.getDate();
+
+        if (reportDate.isAfter(today)) {
+            throw new DateException("La fecha del reporte no puede ser posterior a hoy.");
+        }
+
+        byte[] attachmentData = null;
+        if (attachmentFile != null && !attachmentFile.isEmpty()) {
+            try {
+                attachmentData = attachmentFile.getBytes();
+            } catch (IOException e) {
+                throw new FileException("Error al procesar el archivo adjunto", e);
+            }
+        }
 
         Reports report = new Reports();
         report.setUser(user);
@@ -50,8 +72,8 @@ public class ReportService {
         report.setType(reportRequestDTO.getType());
         report.setCompanyContactNumber(reportRequestDTO.getCompanyContactNumber());
         report.setUrgency(reportRequestDTO.getUrgency());
-        report.setAttachment(reportRequestDTO.getAttachment());
-        report.setEvent(event); // 👈 Asociamos el evento al reporte
+        report.setAttachment(attachmentData);
+        report.setEvent(event);
 
         Reports savedReport = reportRepository.save(report);
         if (event.isActive()) {
@@ -78,11 +100,9 @@ public class ReportService {
     }
 
     // Get all reports
+    @Transactional(readOnly = true)
     public List<ReportResponseDTO> getAllReports() {
-        List<Reports> reports = reportRepository.findAll();
-        return reports.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+        return reportRepository.findAllWithAttachmentAndUserEmail();
     }
 
     // Get a report by ID
@@ -94,10 +114,17 @@ public class ReportService {
 
     // Update a report
     @Transactional
-    public ReportResponseDTO updateReport(Long id, ReportRequestDTO reportRequestDTO) {
+    public ReportResponseDTO updateReport(Long id, ReportRequestDTO reportRequestDTO, MultipartFile attachmentFile) {
         Reports existingReport = reportRepository.findById(id)
                 .orElseThrow(() -> new ReportNotFoundException("Report not found with id: " + id));
-
+        byte[] attachmentData = null;
+        if (attachmentFile != null && !attachmentFile.isEmpty()) {
+            try {
+                attachmentData = attachmentFile.getBytes();
+            } catch (IOException e) {
+                throw new FileException("Error al procesar el archivo adjunto", e);
+            }
+        }
         existingReport.setUser(userRepository.findById(reportRequestDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found")));
         existingReport.setTitle(reportRequestDTO.getTitle());
@@ -106,7 +133,7 @@ public class ReportService {
         existingReport.setType(reportRequestDTO.getType());
         existingReport.setCompanyContactNumber(reportRequestDTO.getCompanyContactNumber());
         existingReport.setUrgency(reportRequestDTO.getUrgency());
-        existingReport.setAttachment(reportRequestDTO.getAttachment());
+        existingReport.setAttachment(attachmentData);
 
         Reports updatedReport = reportRepository.save(existingReport);
         return mapToResponseDTO(updatedReport);
@@ -126,14 +153,16 @@ public class ReportService {
     private ReportResponseDTO mapToResponseDTO(Reports report) {
         return ReportResponseDTO.builder()
                 .idReport(report.getIdReport())
-                .userId(Long.valueOf(report.getUser().getIdUser()))
+                .userEmail(report.getUser().getEmail())
                 .title(report.getTitle())
                 .description(report.getDescription())
                 .date(report.getDate())
                 .type(report.getType())
                 .companyContactNumber(report.getCompanyContactNumber())
                 .urgency(report.getUrgency())
-                .attachment(report.getAttachment())
+                .attachment(report.getAttachment() != null
+                        ? Base64.getEncoder().encodeToString(report.getAttachment())
+                        : null)
                 .build();
     }
 }

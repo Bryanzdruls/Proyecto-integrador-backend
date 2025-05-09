@@ -20,5 +20,4 @@ public class ReportRequestDTO {
     private String type;
     private String companyContactNumber;
     private String urgency;
-    private String attachment;
 }
