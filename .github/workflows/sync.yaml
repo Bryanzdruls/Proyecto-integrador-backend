@@ -44,10 +44,16 @@ jobs:
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk create-application-version \
-            --application-name my-java-app \
-            --version-label v1 \
+            --application-name proyecto-integrador-backend \  # Nombre de la aplicación ya existente
+            --version-label v1  # La versión del despliegue
             --source-bundle S3Bucket=${{ secrets.AWS_BUCKET_NAME }},S3Key=java-app.jar
 
           aws elasticbeanstalk update-environment \
             --environment-name my-java-env \
             --version-label v1
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name my-java-env \  # Nombre del entorno ya existente
+            --version-label v1  # La versión de la aplicación que acabas de crear
