@@ -24,8 +24,8 @@ jobs:
           role-to-assume: arn:aws:iam::594135622755:role/github-trust-role
           aws-region: us-east-2
 
-      - name: Sync files to S3
-        run: aws s3 sync ./files/ s3://${{ secrets.AWS_BUCKET_NAME }} --delete
+      #- name: Sync files to S3
+      # run: aws s3 sync ./files/ s3://${{ secrets.AWS_BUCKET_NAME }} --delete
 
       # Build the Java application
       - name: Set up Java version
