@@ -37,7 +37,7 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: [proteccion-runner]
+    runs-on: [aws-ec2]
     steps:
       - name: Pull image from Docker Hub
         run: docker pull soybrian/proteccion-aws-ec2:latest
