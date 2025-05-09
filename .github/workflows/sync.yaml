@@ -21,32 +21,26 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::594135622755:role/github-trust-role
-          aws-region: us-east-2
-
-      #- name: Sync files to S3
-      # run: aws s3 sync ./files/ s3://${{ secrets.AWS_BUCKET_NAME }} --delete
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}  # ARN del rol que se asume
+          aws-region: ${{ secrets.AWS_REGION }}  # Región especificada en tus secretos
 
       # Build the Java application
       - name: Set up Java version
         uses: actions/setup-java@v2
         with:
-          java-version: '21'          # Change to your desired Java version
+          java-version: '11'  # Cambia según tu versión de Java
           distribution: 'zulu'
 
       - name: Build with Maven
-        run: mvn clean install      # Make sure your project has a pom.xml
+        run: mvn clean install  # Asegúrate de tener un pom.xml
 
-      # Upload the JAR file to S3
+      # Cargar el JAR a S3
       - name: Upload JAR to S3
         run: |
-          aws s3 cp target/*.jar s3://${{ secrets.AWS_BUCKET_NAME }}/java-app.jar
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-2
+          aws s3 cp target/*.jar s3://${{ secrets.AWS_BUCKET_NAME }}/java-app.jar \
+            --region ${{ secrets.AWS_REGION }}
 
-      # Deploy to Elastic Beanstalk
+      # Desplegar a Elastic Beanstalk
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk create-application-version \
