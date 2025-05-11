@@ -1,5 +1,6 @@
 package proyecto.integrador.app.services.reports;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 import proyecto.integrador.app.dto.request.ReportRequestDTO;
 import proyecto.integrador.app.dto.response.ReportResponseDTO;
@@ -14,8 +15,12 @@ import proyecto.integrador.app.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import proyecto.integrador.app.services.aws.S3ServiceImpl;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
@@ -30,6 +35,10 @@ public class ReportService {
     private final IncentiveTypeRepository incentiveTypeRepository;
     private final IncentiveRepository incentiveRepository;
 
+    @Autowired
+    private S3ServiceImpl s3Service;
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
     @Autowired
     public ReportService(ReportRepository reportRepository, UserRepository userRepository, EventRepository eventRepository, IncentiveTypeRepository incentiveTypeRepository,IncentiveRepository incentiveRepository) {
         this.userRepository = userRepository;
@@ -54,17 +63,32 @@ public class ReportService {
         if (reportDate.isAfter(today)) {
             throw new DateException("La fecha del reporte no puede ser posterior a hoy.");
         }
-
-        byte[] attachmentData = null;
+        Reports report = new Reports();
         if (attachmentFile != null && !attachmentFile.isEmpty()) {
             try {
-                attachmentData = attachmentFile.getBytes();
+                // Convert MultipartFile to temp File
+                File tempFile = File.createTempFile("upload-", attachmentFile.getOriginalFilename());
+                attachmentFile.transferTo(tempFile);
+                Path path = tempFile.toPath();
+
+                // Define S3 key (e.g. "reports/user123/filename.pdf")
+                String key = "reports/" + reportRequestDTO.getUserId() + "/" + attachmentFile.getOriginalFilename();
+
+                // Upload to S3
+                s3Service.uploadFile(bucketName, key, path);
+
+                // Save key or filename
+                report.setAttachment(key);
+
+                // Clean up temp file
+                tempFile.delete();
+
+
             } catch (IOException e) {
-                throw new FileException("Error al procesar el archivo adjunto", e);
+                throw new RuntimeException("No se subio el archivo correctamente: "+e);
             }
         }
 
-        Reports report = new Reports();
         report.setUser(user);
         report.setTitle(reportRequestDTO.getTitle());
         report.setDescription(reportRequestDTO.getDescription());
@@ -72,7 +96,6 @@ public class ReportService {
         report.setType(reportRequestDTO.getType());
         report.setCompanyContactNumber(reportRequestDTO.getCompanyContactNumber());
         report.setUrgency(reportRequestDTO.getUrgency());
-        report.setAttachment(attachmentData);
         report.setEvent(event);
 
         Reports savedReport = reportRepository.save(report);
@@ -117,14 +140,7 @@ public class ReportService {
     public ReportResponseDTO updateReport(Long id, ReportRequestDTO reportRequestDTO, MultipartFile attachmentFile) {
         Reports existingReport = reportRepository.findById(id)
                 .orElseThrow(() -> new ReportNotFoundException("Report not found with id: " + id));
-        byte[] attachmentData = null;
-        if (attachmentFile != null && !attachmentFile.isEmpty()) {
-            try {
-                attachmentData = attachmentFile.getBytes();
-            } catch (IOException e) {
-                throw new FileException("Error al procesar el archivo adjunto", e);
-            }
-        }
+
         existingReport.setUser(userRepository.findById(reportRequestDTO.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found")));
         existingReport.setTitle(reportRequestDTO.getTitle());
@@ -133,7 +149,6 @@ public class ReportService {
         existingReport.setType(reportRequestDTO.getType());
         existingReport.setCompanyContactNumber(reportRequestDTO.getCompanyContactNumber());
         existingReport.setUrgency(reportRequestDTO.getUrgency());
-        existingReport.setAttachment(attachmentData);
 
         Reports updatedReport = reportRepository.save(existingReport);
         return mapToResponseDTO(updatedReport);
@@ -151,6 +166,13 @@ public class ReportService {
 
     // Helper method to map from Report entity to ReportResponseDTO
     private ReportResponseDTO mapToResponseDTO(Reports report) {
+        String attachmentPreSignedUrl = "";
+        if (report.getAttachment() == null) {
+            attachmentPreSignedUrl = null;
+        }else{
+            attachmentPreSignedUrl = s3Service.generatePreSignedDownloadUrl(bucketName,report.getAttachment(), Duration.ofMinutes(10));
+
+        }
         return ReportResponseDTO.builder()
                 .idReport(report.getIdReport())
                 .userEmail(report.getUser().getEmail())
@@ -160,9 +182,7 @@ public class ReportService {
                 .type(report.getType())
                 .companyContactNumber(report.getCompanyContactNumber())
                 .urgency(report.getUrgency())
-                .attachment(report.getAttachment() != null
-                        ? Base64.getEncoder().encodeToString(report.getAttachment())
-                        : null)
+                .attachment(attachmentPreSignedUrl)
                 .build();
     }
 }

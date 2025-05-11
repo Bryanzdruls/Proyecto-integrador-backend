@@ -37,8 +37,12 @@ public class User implements UserDetails {
     @Column(name = "role")
     @Enumerated(value = EnumType.STRING)
     private Role role;
+
     @Column(name = "score")
     private Integer score;
+
+    @Column(name = "reward_value")
+    private Double rewardValue;
 
     @OneToMany(mappedBy = "user")  // Esto indica que es la relación inversa y se mapeará por la propiedad "user" de la clase Incentive
     @JsonIgnore

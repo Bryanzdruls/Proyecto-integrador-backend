@@ -1,12 +1,15 @@
 package proyecto.integrador.app.services.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import proyecto.integrador.app.entities.User;
 import proyecto.integrador.app.exceptions.UserNotFoundException;
 import proyecto.integrador.app.exceptions.users.EmailAlreadyExistsException;
 import proyecto.integrador.app.repository.UserRepository;
+import proyecto.integrador.app.services.user.xmlreport.XmlReportGenerator;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,6 +58,7 @@ public class UserService {
         existingUser.setEmail(user.getEmail());
         existingUser.setName(user.getName());
         existingUser.setScore(user.getScore());
+        existingUser.setRewardValue(user.getRewardValue());
         existingUser.setRole(user.getRole());
         return userRepository.save(existingUser);
     }
@@ -69,5 +73,14 @@ public class UserService {
         User user = getUserById(id);
         user.setScore(user.getScore() == null ? 0 : user.getScore() + score); // Asegúrate de inicializar el puntaje si es null
         return userRepository.save(user);
+    }
+
+    public InputStreamResource generateXmlReport() {
+        List<User> users = userRepository.findAll();
+        try{
+            return new InputStreamResource(new XmlReportGenerator().generateUserXmlReport(users));
+        }catch (Exception e){
+            throw new RuntimeException("Error al generar el reporte");
+        }
     }
 }

@@ -1,7 +1,11 @@
 package proyecto.integrador.app.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import proyecto.integrador.app.dto.response.ReportResponseDTO;
@@ -71,5 +75,13 @@ public class UserController {
     public ResponseEntity<User> updateUserScore(@PathVariable Integer id, @RequestParam Integer score) {
         User updatedUser = userService.updateUserScore(id, score);
         return ResponseEntity.ok(updatedUser);
+    }
+    @GetMapping("/generate-xml-report")
+    public ResponseEntity<Resource> generateReport() {
+        InputStreamResource resource = userService.generateXmlReport();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=usuarios_reporte.xml")
+                .contentType(MediaType.APPLICATION_XML)
+                .body(resource);
     }
 }

@@ -39,8 +39,6 @@ public class Reports {
     private String type;
     private String companyContactNumber;
     private String urgency;
-    @Lob
-    @Column(name = "attachment", columnDefinition = "BLOB")
-    @JsonIgnore
-    private byte[] attachment;
+    @Column(name = "attachment")
+    private String attachment;
 }
