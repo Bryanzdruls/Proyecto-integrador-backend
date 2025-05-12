@@ -48,7 +48,7 @@ public class AuthenticationService {
             throw new BadUserCredentialsException("El correo no es valido.");
         }
 
-        registerRequestDTO.setRole(Role.ADMIN);
+        registerRequestDTO.setRole(Role.USER);
         registerRequestDTO.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
 
         User user = User.builder()

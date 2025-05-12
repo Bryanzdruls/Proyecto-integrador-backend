@@ -66,5 +66,11 @@ jobs:
             -e SERVER_PORT=32426 \
             -e SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB \
             -e SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB \
+            -e AWS_ACCESS_KEY=${{secrets.AWS_ACCESS_KEY}} \
+            -e AWS_SECRET_KEY=${{secrets.AWS_SECRET_KEY}} \
+            -e AWS_REGION=us-east-2 \
+            -e AWS_S3_BUCKET_NAME=proyecto-integrador-storage \
+            -e SPRING_DESTINATION_FOLDER=src/main/resources/static/ \
             soybrian/proteccion-aws-ec2:latest
+      
       
