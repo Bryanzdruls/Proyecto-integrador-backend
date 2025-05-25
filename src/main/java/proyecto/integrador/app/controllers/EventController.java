@@ -26,7 +26,7 @@ public class EventController {
     public ResponseEntity<SuccessResponse<List<Event>>> getAllEvents() {
         List<Event> events = eventService.getAllEvents();
         SuccessResponse<List<Event>> response = new SuccessResponse<>(true, events);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
 

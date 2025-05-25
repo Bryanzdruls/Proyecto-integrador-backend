@@ -15,6 +15,7 @@ public class ReportRequestDTO {
 
     private Long userId; // User ID (reference to User entity)
     private String title;
+    private String userEmail;
     private String description; // 'desc' renamed to 'description'
     private LocalDate date;
     private String type;

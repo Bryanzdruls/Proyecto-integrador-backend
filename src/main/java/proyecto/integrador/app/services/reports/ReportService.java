@@ -141,7 +141,7 @@ public class ReportService {
         Reports existingReport = reportRepository.findById(id)
                 .orElseThrow(() -> new ReportNotFoundException("Report not found with id: " + id));
 
-        existingReport.setUser(userRepository.findById(reportRequestDTO.getUserId())
+        existingReport.setUser(userRepository.findByEmail(reportRequestDTO.getUserEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found")));
         existingReport.setTitle(reportRequestDTO.getTitle());
         existingReport.setDescription(reportRequestDTO.getDescription());
